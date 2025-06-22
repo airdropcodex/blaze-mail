@@ -147,20 +147,18 @@ class MailApiService {
 
     const data = await response.json();
     console.log('📊 Raw messages response:', data);
-    console.log('📊 Response structure:', {
-      hasHydraMember: !!data['hydra:member'],
-      hydraMemberType: Array.isArray(data['hydra:member']) ? 'array' : typeof data['hydra:member'],
-      hydraMemberLength: data['hydra:member']?.length,
-      totalItems: data['hydra:totalItems'],
-      keys: Object.keys(data)
-    });
 
-    // Handle the response structure
-    const rawMessages = data['hydra:member'] || [];
-    
-    if (!Array.isArray(rawMessages)) {
-      console.warn('⚠️ hydra:member is not an array:', rawMessages);
-      return [];
+    // Handle both array response and hydra response
+    let rawMessages;
+    if (Array.isArray(data)) {
+      console.log('📊 Response is direct array');
+      rawMessages = data;
+    } else if (data['hydra:member'] && Array.isArray(data['hydra:member'])) {
+      console.log('📊 Response has hydra:member array');
+      rawMessages = data['hydra:member'];
+    } else {
+      console.warn('⚠️ Unexpected response structure:', data);
+      rawMessages = [];
     }
 
     console.log('📧 Processing', rawMessages.length, 'raw messages');
@@ -169,9 +167,15 @@ class MailApiService {
     const messages = rawMessages.map((msg: RawMailMessage, index: number) => {
       console.log(`📧 Processing message ${index + 1}:`, msg);
       
+      // Handle accountId with potential leading slash
+      let accountId = msg.accountId || msg.account_id || '';
+      if (accountId.startsWith('/accounts/')) {
+        accountId = accountId.replace('/accounts/', '');
+      }
+      
       const processedMessage = {
         id: msg.id || msg._id || `msg-${index}`,
-        accountId: msg.accountId || msg.account_id || '',
+        accountId: accountId,
         msgid: msg.msgid || msg.id || msg._id || `msgid-${index}`,
         from: {
           address: msg.from?.address || 'unknown@example.com',
