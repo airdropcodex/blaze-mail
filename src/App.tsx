@@ -21,6 +21,7 @@ import { InboxManager } from './components/InboxManager';
 import { MessageViewer } from './components/MessageViewer';
 import { BlogModal } from './components/BlogModal';
 import { ThemeToggle } from './components/ThemeToggle';
+import { AdSenseAd } from './components/AdSenseAd';
 import { blogPosts } from './data/blog';
 
 const queryClient = new QueryClient({
@@ -31,8 +32,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-// Google AdSense script loader (add once in the app)
 
 function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,14 +76,21 @@ function AppContent() {
 
   const activeBlogPost = blogPosts.find(p => p.id === activeBlogModal);
 
+  // Load AdSense script on component mount
   useEffect(() => {
-    if (window) {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-      script.crossOrigin = 'anonymous';
-      document.head.appendChild(script);
-    }
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1369369221989066';
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup script on unmount
+      const existingScript = document.querySelector('script[src*="adsbygoogle.js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+    };
   }, []);
 
   return (
@@ -157,12 +163,13 @@ function AppContent() {
 
       {/* Advertisement Banner */}
       <div className="w-full flex justify-center py-4 px-2 bg-gradient-to-r from-violet-100 via-cyan-100 to-blue-100 dark:from-violet-900/30 dark:via-cyan-900/30 dark:to-blue-900/30 border-b border-slate-200/50 dark:border-slate-700/50 mt-16">
-        <div className="max-w-3xl w-full flex items-center justify-center rounded-xl shadow-md bg-white/80 dark:bg-slate-800/80 px-6 py-3">
-          <span className="text-sm md:text-base text-slate-700 dark:text-slate-200 font-medium">
-            <span className="mr-2">🚀</span>
-            <span>Advertisement: Try <a href="https://www.example.com" target="_blank" rel="noopener noreferrer" className="text-violet-600 dark:text-violet-400 underline hover:text-violet-800 dark:hover:text-violet-200 transition">Your Product Here</a> for blazing fast email privacy!</span>
-          </span>
-        </div>
+        <AdSenseAd
+          client="ca-pub-1369369221989066"
+          slot="banner-top"
+          format="auto"
+          responsive={true}
+          style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
+        />
       </div>
 
       {/* Inbox Manager Modal */}
@@ -202,17 +209,13 @@ function AppContent() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {[1,2,3,4,5].map((i) => (
               <div key={`hero-ad-${i}`} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/5 p-2 flex justify-center">
-                {/* Google AdSense placeholder */}
-                <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', minHeight: 90, background: '#f3f4f6', borderRadius: 8 }}
-                  data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-                  data-ad-slot={`hero${i}`}
-                  data-ad-format="auto"
-                  data-full-width-responsive="true"
-                >
-                  {/* Replace with real AdSense code */}
-                  <span style={{color:'#a0aec0',fontSize:12}}>Ad Space {i}</span>
-                </ins>
+                <AdSenseAd
+                  client="ca-pub-1369369221989066"
+                  slot={`hero-${i}`}
+                  format="auto"
+                  responsive={true}
+                  style={{ display: 'block', width: '100%', minHeight: '90px' }}
+                />
               </div>
             ))}
           </div>
@@ -258,15 +261,13 @@ function AppContent() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {[1,2].map((i) => (
               <div key={`howitworks-ad-${i}`} className="w-full sm:w-1/2 md:w-1/4 p-2 flex justify-center">
-                <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', minHeight: 90, background: '#f3f4f6', borderRadius: 8 }}
-                  data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-                  data-ad-slot={`howitworks${i}`}
-                  data-ad-format="auto"
-                  data-full-width-responsive="true"
-                >
-                  <span style={{color:'#a0aec0',fontSize:12}}>Ad Space {i}</span>
-                </ins>
+                <AdSenseAd
+                  client="ca-pub-1369369221989066"
+                  slot={`howitworks-${i}`}
+                  format="auto"
+                  responsive={true}
+                  style={{ display: 'block', width: '100%', minHeight: '90px' }}
+                />
               </div>
             ))}
           </div>
@@ -321,15 +322,13 @@ function AppContent() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {[1,2].map((i) => (
               <div key={`features-ad-${i}`} className="w-full sm:w-1/2 md:w-1/4 p-2 flex justify-center">
-                <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', minHeight: 90, background: '#f3f4f6', borderRadius: 8 }}
-                  data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-                  data-ad-slot={`features${i}`}
-                  data-ad-format="auto"
-                  data-full-width-responsive="true"
-                >
-                  <span style={{color:'#a0aec0',fontSize:12}}>Ad Space {i}</span>
-                </ins>
+                <AdSenseAd
+                  client="ca-pub-1369369221989066"
+                  slot={`features-${i}`}
+                  format="auto"
+                  responsive={true}
+                  style={{ display: 'block', width: '100%', minHeight: '90px' }}
+                />
               </div>
             ))}
           </div>
@@ -402,15 +401,13 @@ function AppContent() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {[1,2].map((i) => (
               <div key={`freeforever-ad-${i}`} className="w-full sm:w-1/2 md:w-1/4 p-2 flex justify-center">
-                <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', minHeight: 90, background: '#f3f4f6', borderRadius: 8 }}
-                  data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-                  data-ad-slot={`freeforever${i}`}
-                  data-ad-format="auto"
-                  data-full-width-responsive="true"
-                >
-                  <span style={{color:'#a0aec0',fontSize:12}}>Ad Space {i}</span>
-                </ins>
+                <AdSenseAd
+                  client="ca-pub-1369369221989066"
+                  slot={`freeforever-${i}`}
+                  format="auto"
+                  responsive={true}
+                  style={{ display: 'block', width: '100%', minHeight: '90px' }}
+                />
               </div>
             ))}
           </div>
@@ -453,15 +450,13 @@ function AppContent() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {[1,2].map((i) => (
               <div key={`blog-ad-${i}`} className="w-full sm:w-1/2 md:w-1/4 p-2 flex justify-center">
-                <ins className="adsbygoogle"
-                  style={{ display: 'block', width: '100%', minHeight: 90, background: '#f3f4f6', borderRadius: 8 }}
-                  data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-                  data-ad-slot={`blog${i}`}
-                  data-ad-format="auto"
-                  data-full-width-responsive="true"
-                >
-                  <span style={{color:'#a0aec0',fontSize:12}}>Ad Space {i}</span>
-                </ins>
+                <AdSenseAd
+                  client="ca-pub-1369369221989066"
+                  slot={`blog-${i}`}
+                  format="auto"
+                  responsive={true}
+                  style={{ display: 'block', width: '100%', minHeight: '90px' }}
+                />
               </div>
             ))}
           </div>
