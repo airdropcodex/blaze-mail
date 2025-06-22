@@ -64,7 +64,7 @@ We welcome contributions! If you'd like to contribute to Blaze Mail, please fork
 
 ## License
 
-This project does not specify a license, so the default copyright applies. Please check the repository for any updates regarding licensing.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
