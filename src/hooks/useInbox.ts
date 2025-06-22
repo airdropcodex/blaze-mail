@@ -9,7 +9,7 @@ interface InboxState {
   password: string;
   isAuthenticated: boolean;
   expiresAt: Date | null;
-  token: string | null; // <-- Add token to state
+  token: string | null;
 }
 
 export function useInbox() {
@@ -17,14 +17,19 @@ export function useInbox() {
     // Try to restore from localStorage
     const saved = localStorage.getItem('inbox-state');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.account && parsed.isAuthenticated && parsed.token) {
-        mailApi.setToken(parsed.token);
-        return {
-          ...parsed,
-          expiresAt: new Date(parsed.expiresAt),
-          token: parsed.token,
-        };
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.account && parsed.isAuthenticated && parsed.token) {
+          mailApi.setToken(parsed.token);
+          return {
+            ...parsed,
+            expiresAt: parsed.expiresAt ? new Date(parsed.expiresAt) : null,
+            token: parsed.token,
+          };
+        }
+      } catch (error) {
+        console.error('Failed to parse saved inbox state:', error);
+        localStorage.removeItem('inbox-state');
       }
     }
     return {
@@ -55,6 +60,7 @@ export function useInbox() {
   // Create inbox mutation
   const createInboxMutation = useMutation({
     mutationFn: async () => {
+      console.log('🚀 Creating new inbox...');
       const activeDomains = domains.filter(d => d.isActive && !d.isPrivate);
       if (activeDomains.length === 0) {
         throw new Error('No available domains');
@@ -65,6 +71,8 @@ export function useInbox() {
       const address = `${username}@${randomDomain.domain}`;
       const password = Math.random().toString(36).substring(2, 15);
 
+      console.log('📧 Creating account:', { address });
+
       // Create the account and wait for it to be ready
       await mailApi.createAccount(address, password);
       
@@ -73,11 +81,12 @@ export function useInbox() {
       mailApi.setToken(token.token);
       
       // Ensure the account is properly initialized by fetching it
-      // This also verifies we can authenticate with the token
       const verifiedAccount = await mailApi.getAccount();
       
       // Wait a moment to ensure the account is fully ready
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('✅ Inbox created successfully:', { accountId: verifiedAccount.id, address: verifiedAccount.address });
       
       return { account: verifiedAccount, password, token };
     },
@@ -90,7 +99,7 @@ export function useInbox() {
         password,
         isAuthenticated: true,
         expiresAt,
-        token: token.token, // <-- Save token in state
+        token: token.token,
       };
 
       setInboxState(newState);
@@ -103,17 +112,18 @@ export function useInbox() {
         duration: 3000,
       });
 
-      // Start polling for messages
+      // Start polling for messages immediately
       queryClient.invalidateQueries({ queryKey: ['messages', account.id] });
     },
     onError: (error) => {
+      console.error('❌ Failed to create inbox:', error);
       toast.error(error.message || 'Failed to create inbox', {
         icon: '❌',
       });
     },
   });
 
-  // Fetch messages
+  // Fetch messages with enhanced debugging
   const { 
     data: messages = [], 
     isLoading: messagesLoading,
@@ -123,24 +133,61 @@ export function useInbox() {
   } = useQuery<MailMessage[]>({
     queryKey: ['messages', inboxState.account?.id],
     queryFn: async () => {
-      console.log('🔍 useInbox: Fetching messages...');
-      console.log('🔍 useInbox: Current token:', inboxState.token ? 'Present' : 'Missing');
-      console.log('🔍 useInbox: Account ID:', inboxState.account?.id);
+      console.log('🔍 Fetching messages...');
+      console.log('🔍 Account ID:', inboxState.account?.id);
+      console.log('🔍 Token present:', !!inboxState.token);
+      console.log('🔍 Is authenticated:', inboxState.isAuthenticated);
+      
       try {
         const result = await mailApi.getMessages();
-        console.log('🔍 useInbox: Messages fetched successfully:', result);
-        console.log('🔍 useInbox: Number of messages:', result?.length || 0);
-        return result;
+        console.log('📨 Raw API response:', result);
+        console.log('📊 Messages count:', result?.length || 0);
+        
+        if (result && result.length > 0) {
+          console.log('📧 First message sample:', result[0]);
+        }
+        
+        // Ensure we always return an array
+        const messagesArray = Array.isArray(result) ? result : [];
+        console.log('✅ Processed messages array:', messagesArray);
+        
+        return messagesArray;
       } catch (error) {
-        console.error('🔍 useInbox: Error fetching messages:', error);
+        console.error('❌ Error fetching messages:', error);
+        // Log more details about the error
+        if (error instanceof Error) {
+          console.error('❌ Error message:', error.message);
+          console.error('❌ Error stack:', error.stack);
+        }
         throw error;
       }
     },
-    enabled: !!inboxState.account && inboxState.isAuthenticated && !!inboxState.token, // Only enabled if token is present
-    refetchInterval: 5000, // Poll every 5 seconds
-    staleTime: 0,
-    retry: 3
+    enabled: !!inboxState.account && inboxState.isAuthenticated && !!inboxState.token,
+    refetchInterval: (data) => {
+      // More frequent polling if no messages, less frequent if we have messages
+      return data && data.length > 0 ? 10000 : 3000; // 10s vs 3s
+    },
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
+    retry: (failureCount, error) => {
+      console.log(`🔄 Retry attempt ${failureCount} for messages fetch:`, error);
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+
+  // Enhanced logging for messages state changes
+  useEffect(() => {
+    console.log('📊 Messages state updated:', {
+      messagesCount: messages?.length || 0,
+      messages: messages,
+      isAuthenticated: inboxState.isAuthenticated,
+      messagesLoading,
+      accountId: inboxState.account?.id,
+      accountAddress: inboxState.account?.address,
+      isMessagesError,
+      messagesError: messagesError?.message,
+    });
+  }, [messages, inboxState.isAuthenticated, messagesLoading, inboxState.account, isMessagesError, messagesError]);
 
   // Delete inbox mutation
   const deleteInboxMutation = useMutation({
@@ -161,6 +208,7 @@ export function useInbox() {
       });
     },
     onError: (error) => {
+      console.error('❌ Failed to delete inbox:', error);
       toast.error(error.message || 'Failed to delete inbox', {
         icon: '❌',
       });
@@ -178,6 +226,7 @@ export function useInbox() {
       });
     },
     onError: (error) => {
+      console.error('❌ Failed to delete message:', error);
       toast.error(error.message || 'Failed to delete message', {
         icon: '❌',
       });
@@ -205,7 +254,8 @@ export function useInbox() {
         icon: '📋',
         duration: 2000,
       });
-    } catch {
+    } catch (error) {
+      console.error('❌ Failed to copy to clipboard:', error);
       toast.error('Failed to copy to clipboard', {
         icon: '❌',
       });
@@ -218,6 +268,7 @@ export function useInbox() {
   // Auto-cleanup expired inbox
   useEffect(() => {
     if (isExpired && inboxState.account) {
+      console.log('⏰ Inbox expired, cleaning up...');
       setInboxState({
         account: null,
         password: '',
@@ -234,20 +285,28 @@ export function useInbox() {
     }
   }, [isExpired, inboxState.account, queryClient]);
 
-  // Auto-refresh on error
+  // Enhanced error handling and auto-refresh
   useEffect(() => {
     if (isMessagesError && inboxState.isAuthenticated) {
+      console.log('🔄 Messages error detected, will retry in 5 seconds:', messagesError);
       const timer = setTimeout(() => {
+        console.log('🔄 Retrying messages fetch...');
         refetchMessages();
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [isMessagesError, inboxState.isAuthenticated, refetchMessages]);
+  }, [isMessagesError, inboxState.isAuthenticated, refetchMessages, messagesError]);
+
+  // Ensure messages is always an array and log any issues
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  if (!Array.isArray(messages) && messages !== undefined) {
+    console.warn('⚠️ Messages is not an array:', messages);
+  }
 
   return {
     // State
     account: inboxState.account,
-    messages: Array.isArray(messages) ? messages : [], // Ensure messages is always an array
+    messages: safeMessages,
     isAuthenticated: inboxState.isAuthenticated,
     expiresAt: inboxState.expiresAt,
     isExpired,
@@ -256,6 +315,10 @@ export function useInbox() {
     isCreating: createInboxMutation.isPending,
     isDeleting: deleteInboxMutation.isPending,
     messagesLoading,
+    
+    // Error states
+    isMessagesError,
+    messagesError,
     
     // Actions
     createInbox: () => createInboxMutation.mutate(),
