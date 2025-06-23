@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Inbox,
   Plus,
-  Check
+  Check,
+  Github
 } from 'lucide-react';
 import { InboxManager } from './components/InboxManager';
 import { MessageViewer } from './components/MessageViewer';
@@ -40,6 +41,10 @@ function AppContent() {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [showInboxManager, setShowInboxManager] = useState(false);
   const [modalVisible, setModalVisible] = useState(false); // Animation state
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedback, setFeedback] = useState({ name: '', email: '', message: '' });
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   // Debug: Log when modal opens
   useEffect(() => {
@@ -92,6 +97,21 @@ function AppContent() {
       }
     };
   }, []);
+
+  // Feedback modal submit handler (dummy, just shows success)
+  const handleFeedbackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackSubmitting(true);
+    setTimeout(() => {
+      setFeedbackSubmitting(false);
+      setFeedbackSuccess(true);
+      setFeedback({ name: '', email: '', message: '' });
+      setTimeout(() => {
+        setFeedbackSuccess(false);
+        setShowFeedbackModal(false);
+      }, 1500);
+    }, 1200);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 relative overflow-x-hidden">
@@ -495,19 +515,24 @@ function AppContent() {
               Making email privacy accessible, one temporary inbox at a time.
             </p>
           </div>
-          
           <div className="text-center text-slate-500 dark:text-slate-500 text-sm space-y-2">
             <p>© {new Date().getFullYear()} FlashMail. Built with privacy in mind.</p>
-            <div className="space-x-6">
-              <button className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                Privacy Policy
+            <div className="flex justify-center items-center space-x-6 mt-2">
+              <button
+                className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors font-medium"
+                onClick={() => setShowFeedbackModal(true)}
+              >
+                Give Feedback
               </button>
-              <button className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                Terms of Service
-              </button>
-              <button className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
-                Contact
-              </button>
+              <a
+                href="https://github.com/airdropcodex/blaze-mail"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                title="View source on GitHub"
+              >
+                <Github className="inline w-5 h-5 align-text-bottom" />
+              </a>
             </div>
           </div>
         </div>
@@ -523,6 +548,58 @@ function AppContent() {
         messageId={selectedMessageId} 
         onClose={() => setSelectedMessageId(null)} 
       />
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl border border-slate-200/50 dark:border-slate-700/50 p-8 relative">
+            <button
+              onClick={() => setShowFeedbackModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+              aria-label="Close feedback modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-200 mb-4 text-center">Give Feedback</h2>
+            {feedbackSuccess ? (
+              <div className="text-green-600 dark:text-green-400 text-center font-medium py-8">Thank you for your feedback!</div>
+            ) : (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <input
+                  type="text"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  placeholder="Your Name"
+                  value={feedback.name}
+                  onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
+                  required
+                />
+                <input
+                  type="email"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                  placeholder="Your Email"
+                  value={feedback.email}
+                  onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))}
+                  required
+                />
+                <textarea
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400 min-h-[100px] resize-none"
+                  placeholder="Your Feedback"
+                  value={feedback.message}
+                  onChange={e => setFeedback(f => ({ ...f, message: e.target.value }))}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:from-violet-700 hover:to-cyan-700 transition-all duration-300 disabled:opacity-60"
+                  disabled={feedbackSubmitting}
+                >
+                  {feedbackSubmitting ? 'Submitting...' : 'Submit'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast Notifications */}
       <Toaster
