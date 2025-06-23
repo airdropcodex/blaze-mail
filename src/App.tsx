@@ -161,17 +161,6 @@ function AppContent() {
         </div>
       </nav>
 
-      {/* Advertisement Banner */}
-      <div className="w-full flex justify-center py-4 px-2 bg-gradient-to-r from-violet-100 via-cyan-100 to-blue-100 dark:from-violet-900/30 dark:via-cyan-900/30 dark:to-blue-900/30 border-b border-slate-200/50 dark:border-slate-700/50 mt-16">
-        <AdSenseAd
-          client="ca-pub-1369369221989066"
-          slot="banner-top"
-          format="auto"
-          responsive={true}
-          style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
-        />
-      </div>
-
       {/* Inbox Manager Modal */}
       {(showInboxManager || modalVisible) && (
         <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 ease-in-out ${modalVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
