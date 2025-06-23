@@ -131,7 +131,7 @@ function AppContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="font-display font-bold text-2xl bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent">
-              FlashMail
+              TempInbox
             </div>
             
             {/* Desktop Navigation */}
@@ -194,7 +194,7 @@ function AppContent() {
                   <Inbox className="w-5 h-5" />
                 </div>
                 <h3 className="font-display text-xl font-bold text-slate-800 dark:text-slate-200">
-                  FlashMail Inbox
+                  TempInbox Inbox
                 </h3>
               </div>
               <button
@@ -238,7 +238,7 @@ function AppContent() {
           
           <h1 className="font-display text-5xl md:text-7xl font-bold mb-6">
             <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
-              FlashMail
+              TempInbox
             </span>
           </h1>
           
@@ -431,7 +431,7 @@ function AppContent() {
                 Always Free. No Signups. No Hidden Fees.
               </h2>
               <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                FlashMail is committed to providing free temporary email services. 
+                TempInbox is committed to providing free temporary email services. 
                 We're supported by privacy-respecting, non-intrusive advertisements.
               </p>
               <div className="flex flex-wrap justify-center gap-4 text-white/90">
@@ -509,14 +509,14 @@ function AppContent() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <div className="font-display text-2xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-              FlashMail
+              TempInbox
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
               Making email privacy accessible, one temporary inbox at a time.
             </p>
           </div>
           <div className="text-center text-slate-500 dark:text-slate-500 text-sm space-y-2">
-            <p>© {new Date().getFullYear()} FlashMail. Built with privacy in mind.</p>
+            <p>© {new Date().getFullYear()} TempInbox. Built with privacy in mind.</p>
             <div className="flex justify-center items-center space-x-6 mt-2">
               <button
                 className="hover:text-violet-600 dark:hover:text-violet-400 transition-colors font-medium"

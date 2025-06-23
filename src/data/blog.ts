@@ -13,7 +13,7 @@ export const blogPosts: BlogPost[] = [
   {
     id: 'temp-email-101',
     title: 'Temp Email 101: Why It\'s Not Just for Spam',
-    author: 'FlashMail Team',
+    author: 'TempInbox Team',
     excerpt: 'Discover the legitimate uses of temporary email addresses beyond avoiding spam.',
     readingTime: 4,
     emoji: '📚',

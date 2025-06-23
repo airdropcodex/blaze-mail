@@ -1,4 +1,4 @@
-# ads.txt file for FlashMail
+# ads.txt file for TempInbox
 # This file contains authorized digital sellers for our website
 # Format: <Field #1>, <Field #2>, <Field #3>, <Field #4>
 # Field #1: Domain name of the advertising system
